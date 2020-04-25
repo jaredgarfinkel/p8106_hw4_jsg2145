@@ -36,25 +36,59 @@ y <- Prostate$lpsa
 ```
 
 ```{r}
-cp_grid = expand.grid(.001, 1, .0001)
-
-tree1 <- rpart(lpsa~., Prostate, control = rpart.control(cp = cp_grid))
+tree1 <- rpart(lpsa~., Prostate, control = rpart.control(cp = .0001))
 rpart.plot(tree1)
-str(tree1)
+tree1$cptable
+
+cpTable <- printcp(tree1)
+plotcp(tree1)
+minErr <- which.min(cpTable[,4])
+# minimum cross-validation error
+tree3 <- prune(tree1, cp = cpTable[minErr,1])
+# 1SE rule
+tree4 <- prune(tree1, cp = cpTable[cpTable[,4]<cpTable[minErr,4]+cpTable[minErr,5],1][1])
+
+rpart.plot(tree3)
+rpart.plot(tree4)
 ```
 
 ```{r rpart in caret, cache = TRUE}
 ctrl1 = trainControl(method = "repeatedcv", number = 10, repeats = 5)
-tree_caret = train(x, y, method = "rpart",
+
+set.seed(22)
+tree_caret_cv = train(x, y, method = "rpart",
                    tuneGrid = data.frame(cp = seq(.001, 1, length = 1000)),
                    trControl = ctrl1)
 
-tree_caret$bestTune
+tree_caret_cv$bestTune
 
-ggplot(tree_caret, highlight = TRUE)
-tree_caret$finalModel$cptable
-rpart.plot(tree_caret$finalModel)
+ggplot(tree_caret_cv, highlight = TRUE)
+tree_caret_cv$finalModel$cptable
+rpart.plot(tree_caret_cv$finalModel)
+
+set.seed(22)
+tree_caret_1se <- train(x, y,
+                   method = "rpart",
+                   tuneGrid = data.frame(cp = seq(.001, 1, length = 1000)), 
+                   trControl = trainControl(method = "repeatedcv", number = 10, repeats = 5,
+                                            selectionFunction = "oneSE"))
+
+tree_caret_1se$bestTune
+
+ggplot(tree_caret_1se, highlight = TRUE) + theme_bw()
+tree_caret_1se$finalModel$cptable
+rpart.plot(tree_caret_1se$finalModel)
+
+set.seed(22)
+resamp <- resamples(list(minErr = tree_caret_cv,
+                         oneSE = tree_caret_1se))
+summary(resamp)
 ```
+
+```{r}
+
+```
+
 
 
 
