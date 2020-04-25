@@ -92,10 +92,34 @@ summary(resamp)
 ## Part b
 
 ```{r}
-final_tree = rpart(formula = lpsa ~ ., data = prostate_df, control = rpart.control(cp = 0.1))
+final_tree = rpart(formula = lpsa ~ ., data = Prostate, control = rpart.control(cp = 0.1))
 rpart.plot(final_tree)
 ```
 
+## Part c
+
+```{r, cache = TRUE}
+bagging_grid <- expand.grid(mtry = 8,
+                       splitrule = "variance",
+                       min.node.size = 1:20)
+set.seed(1)
+bagging_fit <- train(x, y, 
+                method = "ranger",
+                tuneGrid = bagging_grid,
+                trControl = ctrl1,
+                importance = "impurity")
+
+ggplot(bagging_fit, highlight = TRUE)
+bagging_fit$results[which.min(bagging_fit$results[,5]),]
+barplot(sort(ranger::importance(bagging_fit$finalModel), 
+             decreasing = FALSE), 
+        las = 2, 
+        horiz = TRUE, 
+        cex.names = 0.7,
+        col = colorRampPalette(colors = c("darkred",
+                                          "white",
+                                          "darkblue"))(19))
+```
 
 
 
