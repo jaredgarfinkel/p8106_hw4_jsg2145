@@ -8,6 +8,9 @@ output: github_document
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(viridis)
+library(rpart)
+library(rpart.plot)
+library(caret)
 knitr::opts_chunk$set(
 	echo = TRUE,
 	warning = FALSE,
@@ -23,3 +26,35 @@ scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```
+
+```{r}
+library(lasso2)
+data(Prostate)
+
+x <- model.matrix(lpsa~.,Prostate)[,-1]
+y <- Prostate$lpsa
+```
+
+```{r}
+cp_grid = expand.grid(.001, 1, .0001)
+
+tree1 <- rpart(lpsa~., Prostate, control = rpart.control(cp = cp_grid))
+rpart.plot(tree1)
+str(tree1)
+```
+
+```{r rpart in caret, cache = TRUE}
+ctrl1 = trainControl(method = "repeatedcv", number = 10, repeats = 5)
+tree_caret = train(x, y, method = "rpart",
+                   tuneGrid = data.frame(cp = seq(.001, 1, length = 1000)),
+                   trControl = ctrl1)
+
+tree_caret$bestTune
+
+ggplot(tree_caret, highlight = TRUE)
+tree_caret$finalModel$cptable
+rpart.plot(tree_caret$finalModel)
+```
+
+
+
