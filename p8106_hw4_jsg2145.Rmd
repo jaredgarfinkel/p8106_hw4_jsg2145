@@ -27,6 +27,8 @@ scale_fill_discrete = scale_fill_viridis_d
 theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```
 
+## Part a
+
 ```{r}
 library(lasso2)
 data(Prostate)
@@ -82,11 +84,16 @@ rpart.plot(tree_caret_1se$finalModel)
 set.seed(22)
 resamp <- resamples(list(minErr = tree_caret_cv,
                          oneSE = tree_caret_1se))
+
+ggplot(resamp)
 summary(resamp)
 ```
 
-```{r}
+## Part b
 
+```{r}
+final_tree = rpart(formula = lpsa ~ ., data = prostate_df, control = rpart.control(cp = 0.1))
+rpart.plot(final_tree)
 ```
 
 
