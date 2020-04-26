@@ -11,6 +11,7 @@ library(viridis)
 library(rpart)
 library(rpart.plot)
 library(caret)
+library(ISLR)
 knitr::opts_chunk$set(
 	echo = TRUE,
 	warning = FALSE,
@@ -173,5 +174,56 @@ resamp2 = resamples(list(minErr = tree_caret_cv,
                          boosting = gbm_fit))
 summary(resamp2)
 bwplot(resamp2, metric = "RMSE")
+```
+
+# Problem 2
+
+## Problem 2a
+
+```{r}
+data(OJ)
+oj_data = OJ %>% 
+  janitor::clean_names()
+# create a training set containing 800 obs
+set.seed(22)
+rowTrain = createDataPartition(y = oj_data$purchase,
+                               p = 799/1070,
+                               list = F)
+train_data = oj_data[rowTrain, ]
+test_data = oj_data[-rowTrain, ]
+# check whether there is 800 obs
+dim(train_data)
+```
+
+```{r}
+x_train = train_data[,-1]
+y_train = pull(train_data, purchase)
+
+x_test = test_data[,-1]
+y_test = pull(test_data, purchase)
+```
+
+```{r, cache = TRUE}
+ctrl2 <- trainControl(method = "repeatedcv",
+                     summaryFunction = twoClassSummary,
+                     classProbs = TRUE)
+set.seed(22)
+
+fit_oj_cv <- train(x_train, y_train,
+                   method = "rpart",
+                   tuneGrid = data.frame(cp = exp(seq(-20,-5, len = 20))),
+                   trControl = ctrl2,
+                   metric = "ROC")
+
+ggplot(fit_oj_cv, highlight = TRUE)
+# optimal tree size is 17 with smallest CV error
+fit_oj_cv$finalModel$cptable
+# plot of tree
+rpart.plot(fit_oj_cv$finalModel)
+# predict response on test data
+pred = predict(fit_oj_cv, newdata = test_data,
+               type = "raw");pred
+# test classification error rate
+1 - mean(test_data$purchase == pred)
 ```
 
