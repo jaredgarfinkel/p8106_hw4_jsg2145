@@ -143,4 +143,24 @@ barplot(sort(ranger::importance(randfor_fit$finalModel), decreasing = FALSE),
         col = colorRampPalette(colors = c("darkred","white","darkblue"))(19))
 ```
 
+## Part e
+
+```{r, cache = TRUE}
+gbm_grid <- expand.grid(
+  n.trees = seq(1, 5000, 100), 
+  interaction.depth = 2:10,
+  shrinkage = c(0.001,0.003,0.005), 
+  n.minobsinnode = 1)
+
+set.seed(22)
+gbm_fit <- train(x, y,
+                 method = "gbm",
+                 tuneGrid = gbm_grid,
+                 trControl = ctrl1,
+                 verbose = FALSE)
+
+ggplot(gbm_fit, highlight = T) + theme_bw()
+
+summary(gbm_fit$finalModel, las = 2, cBars = 19, cex.names = 0.6)
+```
 
