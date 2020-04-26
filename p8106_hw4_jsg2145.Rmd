@@ -227,3 +227,29 @@ pred = predict(fit_oj_cv, newdata = test_data,
 1 - mean(test_data$purchase == pred)
 ```
 
+## Part b
+
+```{r, cache = TRUE}
+rf.grid_oj <- expand.grid(mtry = seq(2,12,2),
+                       splitrule = "gini",
+                       min.node.size = seq(20,100,5))
+set.seed(1) 
+rf.fit_oj <- train(purchase ~ ., train_data,
+                method = "ranger",
+                tuneGrid = rf.grid_oj,
+                metric = "ROC",
+                importance = "impurity",
+                trControl = ctrl2)
+# rf plot
+ggplot(rf.fit_oj, highlight = TRUE)
+# compare variable importance
+barplot(sort(ranger::importance(rf.fit_oj$finalModel), decreasing = FALSE), 
+        las = 2, horiz = TRUE, cex.names = 0.7,
+        col = colorRampPalette(colors = c("darkred","white","darkblue"))(19))
+# predict on test data
+pred2 = predict(rf.fit_oj, newdata = test_data,
+               type = "raw");pred
+# test error rate
+1 - mean(test_data$purchase == pred2)
+```
+
