@@ -164,3 +164,14 @@ ggplot(gbm_fit, highlight = T) + theme_bw()
 summary(gbm_fit$finalModel, las = 2, cBars = 19, cex.names = 0.6)
 ```
 
+## Part f
+
+```{r}
+resamp2 = resamples(list(minErr = tree_caret_cv, 
+                         min_1se = tree_caret_1se,
+                         randomForest = randfor_fit,
+                         boosting = gbm_fit))
+summary(resamp2)
+bwplot(resamp2, metric = "RMSE")
+```
+
