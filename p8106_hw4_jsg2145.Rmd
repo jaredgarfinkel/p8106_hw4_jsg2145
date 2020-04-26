@@ -102,7 +102,7 @@ rpart.plot(final_tree)
 bagging_grid <- expand.grid(mtry = 8,
                        splitrule = "variance",
                        min.node.size = 1:20)
-set.seed(1)
+set.seed(22)
 bagging_fit <- train(x, y, 
                 method = "ranger",
                 tuneGrid = bagging_grid,
@@ -121,5 +121,26 @@ barplot(sort(ranger::importance(bagging_fit$finalModel),
                                           "darkblue"))(19))
 ```
 
+## Part d
+
+```{r, cache = TRUE}
+randfor_grid <- expand.grid(mtry = 1:7,
+                       splitrule = "variance",
+                       min.node.size = 1:15)
+set.seed(22)
+randfor_fit <- train(x, y, 
+                method = "ranger",
+                tuneGrid = randfor_grid,
+                trControl = ctrl1,
+                importance = 'permutation')
+
+ggplot(randfor_fit, highlight = TRUE)
+
+randfor_fit$results[which.min(randfor_fit$results[,5]),]
+
+barplot(sort(ranger::importance(randfor_fit$finalModel), decreasing = FALSE), 
+        las = 2, horiz = TRUE, cex.names = 0.7,
+        col = colorRampPalette(colors = c("darkred","white","darkblue"))(19))
+```
 
 
